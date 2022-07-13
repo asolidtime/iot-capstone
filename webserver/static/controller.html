@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<pre class="output"></pre>
+</form>
+<script>
+    // side note: webkit has a different api for grabbing device orientation, if you want to run this on an iOS device it'll need to be rewritten
+    // other side note: i think modern versions of chrom(ium) on android has this problem too
+    var output = document.querySelector('.output');
+    var motorSpeed = 0;
+    var rotation = 0;
+    var beta = 0;
+    var gamma = 0;
+    var sendDelay = 100;
+    var userAgent = window.navigator.userAgent;
+    function requestOrientationPermission() {
+        DeviceOrientationEvent.requestPermission()
+            .then(response => {
+                if (response == 'granted') {
+                    window.addEventListener('deviceorientation', handleOrientation);
+                }
+            })
+            .catch(console.error)
+    }
+    function setupSendInterval() {
+        setInterval(function () {
+            if (beta !== undefined) {
+                var request = `/postDeviceOrientation/${beta}/${gamma}`
+                var xmlHttp = new XMLHttpRequest();
+                xmlHttp.open("POST", request, true);
+                xmlHttp.timeout = 100;
+                xmlHttp.send(null);
+                console.log(request);
+            }
+        }, sendDelay);
+    }
+
+    if (!userAgent.match(/iPad/i) && !userAgent.match(/iPhone/i)) {
+        window.addEventListener('deviceorientation', handleOrientation);
+        setupSendInterval();
+    }
+    output.textContent = "if you're seeing this, try pressing the 'start sending orientation' button";
+    function handleOrientation(event) {
+        beta = event.beta;
+        gamma = event.gamma;
+        output.textContent = `beta : ${beta}\n`;
+        output.textContent += `gamma: ${gamma}\n`;
+    }
+
+
+
+</script>
+<button onclick="requestOrientationPermission()">Start sending orientation</button>
+</html>
